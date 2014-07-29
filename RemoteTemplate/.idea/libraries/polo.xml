@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="polo">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/com_example_google_tv_anymotelibrary/libs/polo.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

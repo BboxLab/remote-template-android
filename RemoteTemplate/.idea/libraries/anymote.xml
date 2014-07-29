@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="anymote">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/com_example_google_tv_anymotelibrary/libs/anymote.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

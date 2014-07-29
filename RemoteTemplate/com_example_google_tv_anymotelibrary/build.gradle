@@ -1,0 +1,24 @@
+apply plugin: 'android-library'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.1.0"
+
+    defaultConfig {
+        applicationId "com.example.google.tv.anymotelibrary"
+    }
+
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile files('libs/protobuf-java-2.2.0-lite.jar')
+    compile files('libs/anymote.jar')
+    compile files('libs/bcprov-jdk15-143.jar')
+    compile files('libs/polo.jar')
+}

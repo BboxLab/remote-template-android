@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="protobuf-java-2.2.0-lite">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/com_example_google_tv_anymotelibrary/libs/protobuf-java-2.2.0-lite.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
