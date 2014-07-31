@@ -177,6 +177,8 @@ public class MyActivity extends ActionBarActivity
                 });
             }
         });
+
+        initAnymoteConnection();
     }
 
     @Override
