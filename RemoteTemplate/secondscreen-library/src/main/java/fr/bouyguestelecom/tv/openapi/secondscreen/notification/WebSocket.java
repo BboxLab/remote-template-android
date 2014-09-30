@@ -36,6 +36,7 @@ public class WebSocket implements NotificationManager {
     private static String RESOURCE_ID_KEY = "resourceId";
     private static String ERROR_KEY = "error";
     private static String BODY_KEY = "body";
+    private static String MESSAGE_KEY = "message";
     private static String DESTINATION_KEY = "destination";
     private static String APP_ID_KEY = "appId";
     private static String RESOURCES_KEY = "resources";
@@ -61,7 +62,7 @@ public class WebSocket implements NotificationManager {
 
         this.appId = appId;
         this.bboxRestClient = bboxRestClient;
-        listenerMap.put(NotificationType.APPLICATIONS.toString(), applicationsListeners);
+        listenerMap.put(NotificationType.APPLICATION.toString(), applicationsListeners);
         listenerMap.put(NotificationType.MESSAGE.toString(), messagesListeners);
         listenerMap.put(NotificationType.MEDIA.toString(), mediaListeners);
         listenerMap.put(NotificationType.USER_INPUT.toString(), userInputListeners);
@@ -266,7 +267,7 @@ public class WebSocket implements NotificationManager {
         try {
             toSend.put(DESTINATION_KEY, channelID);
             toSend.put(SOURCE_KEY, appId);
-            toSend.put(BODY_KEY, msg);
+            toSend.put(MESSAGE_KEY, msg);
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage());
         }

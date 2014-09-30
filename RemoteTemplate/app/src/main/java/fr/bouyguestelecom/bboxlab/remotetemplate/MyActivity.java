@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,8 +22,11 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.google.tv.anymotelibrary.client.AnymoteClientService;
 import com.example.google.tv.anymotelibrary.client.AnymoteClientService.ClientListener;
@@ -38,6 +42,8 @@ import java.util.Map;
 
 import fr.bouyguestelecom.tv.openapi.secondscreen.application.Application;
 import fr.bouyguestelecom.tv.openapi.secondscreen.application.ApplicationsManager;
+import fr.bouyguestelecom.tv.openapi.secondscreen.authenticate.Auth;
+import fr.bouyguestelecom.tv.openapi.secondscreen.authenticate.IAuthCallback;
 import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.Bbox;
 import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.BboxManager;
 import fr.bouyguestelecom.tv.openapi.secondscreen.notification.NotificationManager;
@@ -77,13 +83,16 @@ public class MyActivity extends ActionBarActivity
     private static List<String> notificationsList = new ArrayList<String>();
     private static String IP_PREFERENCE = "bboxIP";
     private static String DEFAULT_IP = "10.1.0.50";
-    private Context mContex;
+    public static Activity mainActivity;
+    public static Context mContex;
     private BboxManager bboxManager;
     private Bbox currentBbox;
+    IAuthCallback authenticationCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mainActivity = this;
         setContentView(R.layout.activity_my_activity);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
@@ -92,27 +101,21 @@ public class MyActivity extends ActionBarActivity
 
         mContex = getApplicationContext();
 
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
-
-        bboxManager = new BboxManager();
-        bboxManager.startLookingForBbox(getApplicationContext(), new BboxManager.CallbackBboxFound() {
+        // Callback used by after security check
+        // Status different than 2xx means that something wrong happened
+        // Check the reason to know exactly why there is an error (problem with tokens means problem during connection with distant platform
+        // authentication while problem with sessionId means problem with bbox connectivity check)
+        authenticationCallback = new IAuthCallback() {
             @Override
-            public void onResult(Bbox bboxFound) {
+            public void onAuthResult(int statusCode, String reason) {
 
-                // When we find our Bbox, we stopped looking for other Bbox.
-                bboxManager.stopLookingForBbox();
-
-                // We save our Bbox.
-                currentBbox = bboxFound;
-
-                // We store the IP of the Bbox in the applications preferences.
-                SharedPreferences preference = getPreferences(0);
-                SharedPreferences.Editor editor = preference.edit();
-                editor.putString(IP_PREFERENCE, bboxFound.getIp());
-                editor.commit();
+                //Put stuff here that need authentication process to be done
+                if(statusCode > 299 || statusCode < 200)
+                {
+                    // Something wrong happen during authentication process
+                    displayWarningConnectivityMessage(reason);
+                    return;
+                }
 
                 // We have to get our AppID in order to initiate a websocket connection.
                 currentBbox.getApplicationsManager().getMyAppId("Remote_Controller", new ApplicationsManager.CallbackAppId() {
@@ -132,7 +135,7 @@ public class MyActivity extends ActionBarActivity
                                 Log.d(LOG_TAG, "status subscribe:" + statusCode);
 
                                 // We also subscribe to Applications, but we do not provide a callback this time. We don't want to wait for the return.
-                                notification.subscribe(NotificationType.APPLICATIONS, null);
+                                notification.subscribe(NotificationType.APPLICATION, null);
 
                                 // We add a AllNotificationsListener to Log all the notifications we receive.
                                 notification.addAllNotificationsListener(new NotificationManager.Listener() {
@@ -175,12 +178,94 @@ public class MyActivity extends ActionBarActivity
                         });
                     }
                 });
+
+                initAnymoteConnection();
+
+            }
+        };
+
+        // Set up the drawer.
+        mNavigationDrawerFragment.setUp(
+                R.id.navigation_drawer,
+                (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        bboxSearch();
+
+        // Try to find a Bbox and authenticate
+        return;
+    }
+
+    private void displayWarningConnectivityMessage(String textContent) {
+        int popupWidth = 600;
+        int popupHeight = 500;
+
+        // Inflate the vocon_popup.xml
+        LinearLayout viewGroup = (LinearLayout) MyActivity.mainActivity.findViewById(R.id.warningConnectivity);
+        LayoutInflater layoutInflater = (LayoutInflater) MyActivity.mainActivity
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = layoutInflater.inflate(R.layout.warning_connectivity, viewGroup);
+
+        // Creating the PopupWindow
+        final PopupWindow popup = new PopupWindow(MyActivity.mainActivity); //final popup si bug
+        popup.setContentView(layout);
+        popup.setWidth(popupWidth);
+        popup.setHeight(popupHeight);
+        popup.setFocusable(true);
+
+        assert layout != null;
+
+        TextView textView = (TextView) layout.findViewById(R.id.textViewWarningConnectivity);
+
+        textView.setText(textContent);
+        // Displaying the popup at the specified location, + offsets.
+        popup.showAtLocation(layout, Gravity.CENTER, 0, 0);
+        // Getting a reference to Close button, and close the popup when clicked.
+
+        Button close = (Button) layout.findViewById(R.id.buttonWarningConnectivity);
+        close.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                popup.dismiss();
+            }
+
+        });
+    }
+
+    public void bboxSearch() {
+
+        bboxManager = new BboxManager();
+        bboxManager.startLookingForBbox(getApplicationContext(), new BboxManager.CallbackBboxFound() {
+            @Override
+            public void onResult(final Bbox bboxFound) {
+
+                // When we find our Bbox, we stopped looking for other Bbox.
+                bboxManager.stopLookingForBbox();
+
+                // We save our Bbox.
+                currentBbox = bboxFound;
+
+                // We store the IP of the Bbox in the applications preferences.
+                SharedPreferences preference = getPreferences(0);
+                SharedPreferences.Editor editor = preference.edit();
+                editor.putString(IP_PREFERENCE, bboxFound.getIp());
+                editor.commit();
+
+                /* security will be used in the next release
+                // BBox Ip should be know by this line so we can try to authenticate with Bytel platform and share authentication token with Bbox
+                // result can be check in the IAuthCallback callback
+                AuthentTask authentProcess = new AuthentTask();
+
+                authentProcess.doInBackground(authenticationCallback);
+                */
+
+                // When security will be available, do this stuff in the security's callback
+                initAnymoteConnection();
+
             }
         });
 
-        initAnymoteConnection();
     }
-
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
@@ -325,8 +410,26 @@ public class MyActivity extends ActionBarActivity
                     SharedPreferences.Editor editor = preference.edit();
                     editor.putString("bboxIP", editText.getText().toString());
                     editor.commit();
-                }
-            });
+
+                    /* security will be used in the nex release
+                    // BBox Ip should be know by this line so we can try to authenticate with Bytel platform and share authentication token with Bbox
+                    // result can be check in the IAuthCallback callback
+                    AuthentTask authentProcess = new AuthentTask();
+
+                    authentProcess.doInBackground(((MyActivity) getActivity()).authenticationCallback);
+                    */
+
+                        // When security will be available, do this stuff in the security's callback
+
+                    //Destroy the connection before trying to establish a new one
+                    if(((MyActivity) getActivity()).anymoteSender != null)
+                    {
+                        ((MyActivity) getActivity()).anymoteSender.disconnect();
+                    }
+                    ((MyActivity) getActivity()).initAnymoteConnection();
+
+                    }
+                });
         }
 
         // App controller

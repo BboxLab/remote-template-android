@@ -7,7 +7,7 @@ public enum NotificationType {
 
     MESSAGE("Message"),
     USER_INPUT("UserInterface/RemoteController"),
-    APPLICATIONS("Application"),
+    APPLICATION("Application"),
     MEDIA("Media");
 
     private String value;
