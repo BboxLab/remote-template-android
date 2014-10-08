@@ -22,4 +22,5 @@ public class BboxApiUrl {
     public static final String LOGO_URL = "logoUrl";
     public static final String APP_ID = "appId";
     public static final String APP_STATE = "appState";
+    public static final String MEDIA = "media";
 }
