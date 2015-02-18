@@ -72,7 +72,7 @@ public class ApplicationAdapter extends ArrayAdapter<Application> {
 
             final SharedPreferences preference = activity.getPreferences(0);
 
-            final Bbox bbox = new Bbox(preference.getString("bboxIP", "10.1.0.53"), mContext);
+            final Bbox bbox = new Bbox(preference.getString("bboxIP", "10.1.0.53"));
 
             start.setOnClickListener(new View.OnClickListener() {
                 @Override

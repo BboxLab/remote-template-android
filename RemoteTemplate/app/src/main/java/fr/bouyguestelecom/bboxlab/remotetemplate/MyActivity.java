@@ -49,7 +49,6 @@ import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.BboxManager;
 import fr.bouyguestelecom.tv.openapi.secondscreen.notification.NotificationManager;
 import fr.bouyguestelecom.tv.openapi.secondscreen.notification.NotificationType;
 import fr.bouyguestelecom.tv.openapi.secondscreen.notification.WebSocket;
-import fr.bouyguestelecom.tv.openapi.secondscreen.remote.RemoteManager;
 
 public class MyActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks, ClientListener {
@@ -438,7 +437,7 @@ public class MyActivity extends ActionBarActivity
             mContext = getActivity().getApplicationContext();
 
             SharedPreferences preference = getActivity().getPreferences(0);
-            bbox = new Bbox(preference.getString(IP_PREFERENCE, DEFAULT_IP), mContext);
+            bbox = new Bbox(preference.getString(IP_PREFERENCE, DEFAULT_IP));
 
             ApplicationsManager applicationsManager = bbox.getApplicationsManager();
 

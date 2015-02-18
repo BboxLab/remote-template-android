@@ -80,7 +80,7 @@ public class NavigationDrawerFragment extends Fragment {
         String DEFAULT_IP = "10.1.0.44";
         String IP_PREFERENCE = "bboxIP";
 
-        _bbox = new Bbox(preference.getString(IP_PREFERENCE, DEFAULT_IP), mContext);
+        _bbox = new Bbox(preference.getString(IP_PREFERENCE, DEFAULT_IP));
         ipAddress = _bbox.getIp();
         Log.e("ipAddress _bbox", ipAddress);
 

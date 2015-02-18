@@ -27,9 +27,9 @@ public class AuthentTask extends AsyncTask<IAuthCallback, Integer, Void> {
         final SharedPreferences preference = MyActivity.mainActivity.getPreferences(Context.MODE_PRIVATE);
 
         final String bboxSavedIp = preference.getString("bboxIP", null);
-        Auth auth = Auth.createInstance(
-                MyActivity.mContex, bboxSavedIp);
-        auth.authenticate(appId, appSecret, params[0]);
+        //Auth auth = Auth.createInstance(
+        //        MyActivity.mContex, bboxSavedIp);
+        //auth.authenticate(appId, appSecret, params[0]);
 
         return null;
     }

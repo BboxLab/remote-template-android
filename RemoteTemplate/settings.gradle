@@ -1,2 +1,2 @@
-include ':app', ':secondscreen-library'
+include ':app'
 include ':com_example_google_tv_anymotelibrary'
