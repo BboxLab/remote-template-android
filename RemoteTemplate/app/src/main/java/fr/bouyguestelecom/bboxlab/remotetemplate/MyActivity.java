@@ -42,10 +42,8 @@ import java.util.Map;
 
 import fr.bouyguestelecom.tv.openapi.secondscreen.application.Application;
 import fr.bouyguestelecom.tv.openapi.secondscreen.application.ApplicationsManager;
-import fr.bouyguestelecom.tv.openapi.secondscreen.authenticate.Auth;
 import fr.bouyguestelecom.tv.openapi.secondscreen.authenticate.IAuthCallback;
 import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.Bbox;
-import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.BboxManager;
 import fr.bouyguestelecom.tv.openapi.secondscreen.notification.NotificationManager;
 import fr.bouyguestelecom.tv.openapi.secondscreen.notification.NotificationType;
 import fr.bouyguestelecom.tv.openapi.secondscreen.notification.WebSocket;
@@ -78,14 +76,9 @@ public class MyActivity extends ActionBarActivity
     public AnymoteSender anymoteSender;
     public ServiceConnection mConnection;
 
-    private static final String LOG_TAG = "MainActivity";
+    private static final String LOG_TAG = MyActivity.class.getCanonicalName();
     private static List<String> notificationsList = new ArrayList<String>();
-    private static String IP_PREFERENCE = "bboxIP";
-    private static String DEFAULT_IP = "10.1.0.50";
     public static Activity mainActivity;
-    public static Context mContex;
-    private BboxManager bboxManager;
-    private Bbox currentBbox;
     IAuthCallback authenticationCallback;
 
     @Override
@@ -98,85 +91,88 @@ public class MyActivity extends ActionBarActivity
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
-        mContex = getApplicationContext();
-
         // Callback used by after security check
         // Status different than 2xx means that something wrong happened
         // Check the reason to know exactly why there is an error (problem with tokens means problem during connection with distant platform
         // authentication while problem with sessionId means problem with bbox connectivity check)
         authenticationCallback = new IAuthCallback() {
             @Override
-            public void onAuthResult(int statusCode, String reason) {
+            public void onAuthResult(int code, String msg) {
+                Log.d(LOG_TAG, "onAuthResult msg=" + msg + " code=" + code);
 
                 //Put stuff here that need authentication process to be done
-                if(statusCode > 299 || statusCode < 200)
+                if(code > 299 || code < 200)
                 {
                     // Something wrong happen during authentication process
-                    displayWarningConnectivityMessage(reason);
+                    displayWarningConnectivityMessage(msg);
                     return;
                 }
 
-                // We have to get our AppID in order to initiate a websocket connection.
-                currentBbox.getApplicationsManager().getMyAppId("Remote_Controller", new ApplicationsManager.CallbackAppId() {
-                    @Override
-                    public void onResult(int statusCode, String appId) {
+                final Bbox bbox = BboxHolder.getInstance().getBbox();
 
-                        // Now we have our AppID, we can therefor instantiate a NotificationManager with the WebSocket implementation.
-                        final NotificationManager notification = WebSocket.getInstance(appId, currentBbox);
+                if (bbox != null) {
+                    // We have to get our AppID in order to initiate a websocket connection.
+                    bbox.getApplicationsManager().getMyAppId("Remote_Controller", new ApplicationsManager.CallbackAppId() {
+                        @Override
+                        public void onResult(int statusCode, String appId) {
 
-                        // Before the NotificationManager start listening we are going to subscribe to Message.
-                        // We provide a callback, because we want to start listening to notifications after we subscribe to Message.
-                        notification.subscribe(NotificationType.MESSAGE, new NotificationManager.CallbackSubscribed() {
-                            @Override
-                            public void onResult(int statusCode) {
+                            // Now we have our AppID, we can therefor instantiate a NotificationManager with the WebSocket implementation.
+                            final NotificationManager notification = WebSocket.getInstance(appId, bbox);
 
-                                // We can check if the subscription is a success with the http return code.
-                                Log.d(LOG_TAG, "status subscribe:" + statusCode);
+                            // Before the NotificationManager start listening we are going to subscribe to Message.
+                            // We provide a callback, because we want to start listening to notifications after we subscribe to Message.
+                            notification.subscribe(NotificationType.MESSAGE, new NotificationManager.CallbackSubscribed() {
+                                @Override
+                                public void onResult(int statusCode) {
 
-                                // We also subscribe to Applications, but we do not provide a callback this time. We don't want to wait for the return.
-                                notification.subscribe(NotificationType.APPLICATION, null);
+                                    // We can check if the subscription is a success with the http return code.
+                                    Log.d(LOG_TAG, "status subscribe:" + statusCode);
 
-                                // We add a AllNotificationsListener to Log all the notifications we receive.
-                                notification.addAllNotificationsListener(new NotificationManager.Listener() {
-                                    @Override
-                                    public void onNotification(JSONObject jsonObject) {
-                                        // We here add the received notification to a list, to be able to print it in our UI.
-                                        notificationsList.add(jsonObject.toString());
-                                        Log.d(LOG_TAG, jsonObject.toString());
-                                    }
-                                });
+                                    // We also subscribe to Applications, but we do not provide a callback this time. We don't want to wait for the return.
+                                    notification.subscribe(NotificationType.APPLICATION, null);
 
-                                // Here we add a MessageListener. Inside we will only receive Message notifications.
-                                // Message notification will still appear in the AllNotificationListener.
-                                notification.addMessageListener(new NotificationManager.Listener() {
-                                    @Override
-                                    public void onNotification(JSONObject jsonObject) {
-                                        Log.d(LOG_TAG, jsonObject.toString());
-                                    }
-                                });
+                                    // We add a AllNotificationsListener to Log all the notifications we receive.
+                                    notification.addAllNotificationsListener(new NotificationManager.Listener() {
+                                        @Override
+                                        public void onNotification(JSONObject jsonObject) {
+                                            // We here add the received notification to a list, to be able to print it in our UI.
+                                            notificationsList.add(jsonObject.toString());
+                                            Log.d(LOG_TAG, jsonObject.toString());
+                                        }
+                                    });
 
-                                // Same here with a ApplicationListener.
-                                notification.addApplicationListener(new NotificationManager.Listener() {
-                                    @Override
-                                    public void onNotification(JSONObject jsonObject) {
-                                        Log.d(LOG_TAG, jsonObject.toString());
-                                    }
-                                });
+                                    // Here we add a MessageListener. Inside we will only receive Message notifications.
+                                    // Message notification will still appear in the AllNotificationListener.
+                                    notification.addMessageListener(new NotificationManager.Listener() {
+                                        @Override
+                                        public void onNotification(JSONObject jsonObject) {
+                                            Log.d(LOG_TAG, jsonObject.toString());
+                                        }
+                                    });
 
-                                // Once we have set our listeners, we can start listening for notifications.
-                                notification.listen(new NotificationManager.CallbackConnected() {
-                                    @Override
-                                    public void onConnect() {
-                                        Log.i(LOG_TAG, "WebSockets connected");
+                                    // Same here with a ApplicationListener.
+                                    notification.addApplicationListener(new NotificationManager.Listener() {
+                                        @Override
+                                        public void onNotification(JSONObject jsonObject) {
+                                            Log.d(LOG_TAG, jsonObject.toString());
+                                        }
+                                    });
 
-                                        // As soon as we are connected with the NotificationManager, we send a message to ourself.
-                                        notification.sendMessage(notification.getChannelId(), "hello myself");
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
+                                    // Once we have set our listeners, we can start listening for notifications.
+                                    notification.listen(new NotificationManager.CallbackConnected() {
+                                        @Override
+                                        public void onConnect() {
+                                            Log.i(LOG_TAG, "WebSockets connected");
+
+                                            // As soon as we are connected with the NotificationManager, we send a message to ourself.
+                                            notification.sendMessage(notification.getChannelId(), "hello myself");
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
 
                 initAnymoteConnection();
 
@@ -188,10 +184,8 @@ public class MyActivity extends ActionBarActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
-        bboxSearch();
 
-        // Try to find a Bbox and authenticate
-        return;
+        BboxHolder.getInstance().bboxSearch(this, authenticationCallback);
     }
 
     private void displayWarningConnectivityMessage(String textContent) {
@@ -231,46 +225,12 @@ public class MyActivity extends ActionBarActivity
         });
     }
 
-    public void bboxSearch() {
-
-        bboxManager = new BboxManager();
-        bboxManager.startLookingForBbox(getApplicationContext(), new BboxManager.CallbackBboxFound() {
-            @Override
-            public void onResult(final Bbox bboxFound) {
-
-                // When we find our Bbox, we stopped looking for other Bbox.
-                bboxManager.stopLookingForBbox();
-
-                // We save our Bbox.
-                currentBbox = bboxFound;
-
-                // We store the IP of the Bbox in the applications preferences.
-                SharedPreferences preference = getPreferences(0);
-                SharedPreferences.Editor editor = preference.edit();
-                editor.putString(IP_PREFERENCE, bboxFound.getIp());
-                editor.commit();
-
-                /* security will be used in the next release
-                // BBox Ip should be know by this line so we can try to authenticate with Bytel platform and share authentication token with Bbox
-                // result can be check in the IAuthCallback callback
-                AuthentTask authentProcess = new AuthentTask();
-
-                authentProcess.doInBackground(authenticationCallback);
-                */
-
-                // When security will be available, do this stuff in the security's callback
-                initAnymoteConnection();
-
-            }
-        });
-
-    }
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1, mContex))
+                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1, getApplicationContext()))
                 .commit();
     }
 
@@ -333,12 +293,6 @@ public class MyActivity extends ActionBarActivity
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
-        private Context mContext;
-        private Bbox bbox;
-
-        public PlaceholderFragment(Context mContext) {
-            this.mContext = mContext;
-        }
 
         public PlaceholderFragment() {
 
@@ -349,7 +303,7 @@ public class MyActivity extends ActionBarActivity
          * number.
          */
         public static PlaceholderFragment newInstance(int sectionNumber, Context mContext) {
-            PlaceholderFragment fragment = new PlaceholderFragment(mContext);
+            PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
@@ -434,18 +388,13 @@ public class MyActivity extends ActionBarActivity
         // App controller
         private void initAppController(final View rootView) {
 
-            mContext = getActivity().getApplicationContext();
-
-            SharedPreferences preference = getActivity().getPreferences(0);
-            bbox = new Bbox(preference.getString(IP_PREFERENCE, DEFAULT_IP));
-
-            ApplicationsManager applicationsManager = bbox.getApplicationsManager();
+            ApplicationsManager applicationsManager = BboxHolder.getInstance().getBbox().getApplicationsManager();
 
             // We are getting all the installed applications on the Bbox, and show them in a listView.
             applicationsManager.getApplications(new ApplicationsManager.CallbackApplications() {
                 @Override
                 public void onResult(int status, List<Application> applications) {
-                    ApplicationAdapter applicationAdapter = new ApplicationAdapter(mContext, applications, getActivity());
+                    ApplicationAdapter applicationAdapter = new ApplicationAdapter(getActivity().getApplicationContext(), applications, getActivity());
                     ListView listView = (ListView) rootView.findViewById(R.id.listView);
                     listView.setAdapter(applicationAdapter);
                 }
@@ -454,10 +403,9 @@ public class MyActivity extends ActionBarActivity
 
         // Notifications
         private void initNotifications(final View rootView) {
-            mContext = getActivity().getApplicationContext();
 
             // We are showing all our received notification in a ListView.
-            NotificationsAdapter notificationsAdapter = new NotificationsAdapter(mContext, notificationsList, getActivity());
+            NotificationsAdapter notificationsAdapter = new NotificationsAdapter(getActivity().getApplicationContext(), notificationsList, getActivity());
             ListView listView = (ListView) rootView.findViewById(R.id.listView);
             listView.setAdapter(notificationsAdapter);
         }
@@ -483,8 +431,6 @@ public class MyActivity extends ActionBarActivity
             buttons.put(R.id.buttonRight, Code.KEYCODE_DPAD_RIGHT);
             buttons.put(R.id.buttonOk, Code.KEYCODE_ENTER);
             buttons.put(R.id.buttonHome, Code.KEYCODE_HOME);
-
-            SharedPreferences preference = getActivity().getPreferences(0);
 
             for (final Integer id : buttons.keySet()) {
 

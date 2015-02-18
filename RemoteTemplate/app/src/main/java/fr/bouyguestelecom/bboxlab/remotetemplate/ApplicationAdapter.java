@@ -70,45 +70,47 @@ public class ApplicationAdapter extends ArrayAdapter<Application> {
             appName.setText(app.getAppName());
             appState.setText(app.getAppState().toString());
 
-            final SharedPreferences preference = activity.getPreferences(0);
+            Bbox bbox = BboxHolder.getInstance().getBbox();
 
-            final Bbox bbox = new Bbox(preference.getString("bboxIP", "10.1.0.53"));
+            if (bbox != null) {
+                final ApplicationsManager applicationsManager = bbox.getApplicationsManager();
 
-            start.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    bbox.getApplicationsManager().startApplication(app, new CallbackHttpStatus() {
-                        @Override
-                        public void onResult(int i) {
-                            bbox.getApplicationsManager().getApplications(new ApplicationsManager.CallbackApplications() {
-                                @Override
-                                public void onResult(int status, List<Application> applicationsList) {
-                                    applications = applicationsList;
-                                    notifyDataSetChanged();
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+                start.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        applicationsManager.startApplication(app, new CallbackHttpStatus() {
+                            @Override
+                            public void onResult(int i) {
+                                applicationsManager.getApplications(new ApplicationsManager.CallbackApplications() {
+                                    @Override
+                                    public void onResult(int status, List<Application> applicationsList) {
+                                        applications = applicationsList;
+                                        notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
 
-            stop.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    bbox.getApplicationsManager().stopApplication(app, new CallbackHttpStatus() {
-                        @Override
-                        public void onResult(int i) {
-                            bbox.getApplicationsManager().getApplications(new ApplicationsManager.CallbackApplications() {
-                                @Override
-                                public void onResult(int status, List<Application> applicationsList) {
-                                    applications = applicationsList;
-                                    notifyDataSetChanged();
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+                stop.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        applicationsManager.stopApplication(app, new CallbackHttpStatus() {
+                            @Override
+                            public void onResult(int i) {
+                                applicationsManager.getApplications(new ApplicationsManager.CallbackApplications() {
+                                    @Override
+                                    public void onResult(int status, List<Application> applicationsList) {
+                                        applications = applicationsList;
+                                        notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
         }
         return view;
     }

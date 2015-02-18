@@ -63,7 +63,6 @@ public class NavigationDrawerFragment extends Fragment {
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
-    private Bbox _bbox;
     private String ipAddress;
     private Context mContext;
     private SharedPreferences preference;
@@ -77,12 +76,6 @@ public class NavigationDrawerFragment extends Fragment {
 
         mContext = getActivity().getApplicationContext();
         preference = getActivity().getPreferences(0);
-        String DEFAULT_IP = "10.1.0.44";
-        String IP_PREFERENCE = "bboxIP";
-
-        _bbox = new Bbox(preference.getString(IP_PREFERENCE, DEFAULT_IP));
-        ipAddress = _bbox.getIp();
-        Log.e("ipAddress _bbox", ipAddress);
 
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
         // drawer. See PREF_USER_LEARNED_DRAWER for details.

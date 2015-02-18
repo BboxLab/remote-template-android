@@ -202,8 +202,6 @@ public final class AnymoteSender implements MessageReceiver {
     /**
      * Sends a sequence of keystrokes in String format to Anymote service.
      * Example input: "AHDFSDF".
-     * 
-     * @param url
      */
     public void sendData(final String data) {
         final Message msg = Message.obtain();
