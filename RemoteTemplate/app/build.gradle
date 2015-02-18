@@ -39,6 +39,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:20.+'
     compile project(':com_example_google_tv_anymotelibrary')
 
+    // Second screen library. Sources available here: https://github.com/BboxLab/bbox-2ndscreen-android
     compile(name:'lib-bbox-secondscreen-0.3.1-SNAPSHOT-debug', ext:'aar')
 
     // Following libs are required for secondscreen lib at runtime
