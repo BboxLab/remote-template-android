@@ -10,15 +10,23 @@ android {
     }
 
     defaultConfig {
-        applicationId "fr.bouyguestelecom.bboxlab.remotetemplate"
         minSdkVersion 8
-        targetSdkVersion 20
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 21
+        versionCode 2
+        versionName "0.1.0-SNAPSHOT"
     }
+
     buildTypes {
         release {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            output.outputFile =
+                    new File(output.outputFile.parent,
+                            output.outputFile.name.replace("app-", "remote-template-" + defaultConfig.versionName + "-"))
         }
     }
 
