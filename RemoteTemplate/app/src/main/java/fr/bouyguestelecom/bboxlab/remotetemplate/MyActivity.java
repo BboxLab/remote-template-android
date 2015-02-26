@@ -128,8 +128,9 @@ public class MyActivity extends ActionBarActivity
                                     // We can check if the subscription is a success with the http return code.
                                     Log.d(LOG_TAG, "status subscribe:" + statusCode);
 
-                                    // We also subscribe to Applications, but we do not provide a callback this time. We don't want to wait for the return.
+                                    // We also subscribe to Applications and Media, but we do not provide a callback this time. We don't want to wait for the return.
                                     notification.subscribe(NotificationType.APPLICATION, null);
+                                    notification.subscribe(NotificationType.MEDIA, null);
 
                                     // We add a AllNotificationsListener to Log all the notifications we receive.
                                     notification.addAllNotificationsListener(new NotificationManager.Listener() {
