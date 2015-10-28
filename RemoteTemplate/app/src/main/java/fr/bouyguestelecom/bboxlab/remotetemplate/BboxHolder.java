@@ -13,11 +13,12 @@ import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.BboxManager;
  */
 public class BboxHolder {
     private static final String TAG = BboxHolder.class.getCanonicalName();
-    private static String APP_ID = "someAppId";
-    private static String APP_SECRET = "someAppSecret";
+    private static String APP_ID = "";
+    private static String APP_SECRET = "";
 
     public static BboxHolder mInstance = new BboxHolder();
     private Bbox mBbox;
+    private BboxManager bboxManager = new BboxManager();
 
     /**
      * Singleton: private constructor. Instance must be retrieved with getInstance method
@@ -25,9 +26,14 @@ public class BboxHolder {
     private BboxHolder(){
     }
 
+    public BboxManager getBboxManager()
+    {
+        return bboxManager;
+    }
+
     public void bboxSearch(final Context context, final IAuthCallback callback) {
 
-        final BboxManager bboxManager = new BboxManager();
+        Log.i("BboxManager", "Start looking for Bbox");
         bboxManager.startLookingForBbox(context, new BboxManager.CallbackBboxFound() {
             @Override
             public void onResult(final Bbox bboxFound) {
@@ -55,6 +61,7 @@ public class BboxHolder {
     }
 
     /**
+     *
      * Do authentication.
      *
      * @param appId     application id.

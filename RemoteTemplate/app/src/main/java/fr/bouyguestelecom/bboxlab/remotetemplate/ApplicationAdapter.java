@@ -57,7 +57,7 @@ public class ApplicationAdapter extends ArrayAdapter<Application> {
                     appState.setTextColor(Color.GRAY);
                     break;
                 case FOREGROUND:
-                    appState.setTextColor(Color.GREEN);
+                    appState.setTextColor(Color.parseColor("#228B22"));
                     break;
                 case STOPPED:
                     appState.setTextColor(Color.RED);
