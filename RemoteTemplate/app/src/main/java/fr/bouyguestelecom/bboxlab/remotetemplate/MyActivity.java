@@ -90,8 +90,9 @@ public class MyActivity
                     displayWarningConnectivityMessage(msg);                                         //Something wrong happen during authentication process
                     return;
                 }                                                                                   //Check the reason to know exactly why there is an error (problem with tokens means problem during connection with distant platform
-                                                                                                    //Authentication while problem with sessionId means problem with bbox connectivity check)
-                final Bbox          bbox = BboxHolder.getInstance().getBbox();                      //Starts almost everything, creates a BboxHolder that holds a Bbox
+                try {                                                                                    //Authentication while problem with sessionId means problem with bbox connectivity check)
+                    final Bbox bbox = BboxHolder.getInstance().getBbox();                      //Starts almost everything, creates a BboxHolder that holds a Bbox
+
 
                 if (bbox != null)
                 {
@@ -151,7 +152,10 @@ public class MyActivity
                                 }
                             });
                 }
-                initAnymoteConnection();                                                            //Pairing to a Bbox through anymote protocol
+                initAnymoteConnection();
+                }
+                catch (BboxNotFoundException e) {
+                }//Pairing to a Bbox through anymote protocol
             }
         };
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer,
@@ -336,12 +340,16 @@ public class MyActivity
             final TextView showCrtIP = (TextView) rootView.findViewById(R.id.showCrtIP);
 
             editText.setText(preference.getString("bboxIP", "*.*.*.*"));
-            showCrtIP.setText(preference.getString("*.*.*.*", BboxHolder.getInstance().getBbox().getIp()));
-            save.setOnClickListener(new View.OnClickListener()
-            {
+            try {
+                showCrtIP.setText(preference.getString("*.*.*.*", BboxHolder.getInstance().getBbox().getIp()));
+            }
+            catch (BboxNotFoundException e) {
+                e.toast(this.getActivity());
+            };
+
+            save.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View view)
-                {
+                public void onClick(View view) {
                     SharedPreferences.Editor editor = preference.edit();
 
                     editor.putString("bboxIP", editText.getText().toString());
@@ -366,23 +374,27 @@ public class MyActivity
 
         private void initAppController(final View rootView)                              // App controller
         {
-            ApplicationsManager applicationsManager = BboxHolder.getInstance().getBbox()
-                    .getApplicationsManager();
+            try {
+                ApplicationsManager applicationsManager = BboxHolder.getInstance().getBbox()
+                        .getApplicationsManager();
 
-            applicationsManager.getApplications(new ApplicationsManager.CallbackApplications()      // We are getting all the installed applications on the Bbox, and show them in a listView.
-            {
-                @Override
-                public void onResult(int status, List<Application> applications)
+                applicationsManager.getApplications(new ApplicationsManager.CallbackApplications()      // We are getting all the installed applications on the Bbox, and show them in a listView.
                 {
-                    ApplicationAdapter applicationAdapter = new ApplicationAdapter(getActivity()
-                            .getApplicationContext()
-                            , applications, getActivity());
-                    ListView listView = (ListView) rootView
-                            .findViewById(R.id.listView);
+                    @Override
+                    public void onResult(int status, List<Application> applications) {
+                        ApplicationAdapter applicationAdapter = new ApplicationAdapter(getActivity()
+                                .getApplicationContext()
+                                , applications, getActivity());
+                        ListView listView = (ListView) rootView
+                                .findViewById(R.id.listView);
 
-                    listView.setAdapter(applicationAdapter);
-                }
-            });
+                        listView.setAdapter(applicationAdapter);
+                    }
+                });
+            }
+            catch (BboxNotFoundException e) {
+                e.toast(this.getActivity());
+            }
         }
 
         private void initNotifications(final View rootView)                              // Notifications
@@ -442,36 +454,40 @@ public class MyActivity
 
         private void initChanList(final View rootView)                                   //Starts Channel List view, taking place on main view
         {
-            MediaManager mediaMng = BboxHolder.getInstance().getBbox().getMediaManager();   //Preparing fetching sequence; Locking target Bbox, Checking setted Bbox presence, Using the setted Bbox's Media fetching sequence
+            try {
 
-            mediaMng.getChannels(new MediaManager.CallbackChannels()                                //Asynchronous REST data fetching through callback
-            {                                                                                       //Anonymous channels' fetching function startpoint
-                @Override
-                public void onResult(int status, final List<Media> chans)                     //On receiving JSON data, fill the Channel List's fragment with
-                {
-                    MediaAdapter mediaAdp = new MediaAdapter(getActivity()
-                            .getApplicationContext(), chans, getActivity());    //Initialize the Channel List's main fragment
-                    ListView lstView = (ListView) rootView.findViewById(R.id.listView);  //Create the ListView and fill it with the corresponding xml fragment; This is where getView is used through override
-                    final ToggleButton tglBtn = (ToggleButton) rootView.findViewById(R.id.toggleButton);
+                MediaManager mediaMng = BboxHolder.getInstance().getBbox().getMediaManager();   //Preparing fetching sequence; Locking target Bbox, Checking setted Bbox presence, Using the setted Bbox's Media fetching sequence
 
-                    tglBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+                mediaMng.getChannels(new MediaManager.CallbackChannels()                                //Asynchronous REST data fetching through callback
+                {                                                                                       //Anonymous channels' fetching function startpoint
+                    @Override
+                    public void onResult(int status, final List<Media> chans)                     //On receiving JSON data, fill the Channel List's fragment with
                     {
-                        @Override
-                        public void onCheckedChanged(CompoundButton btnView, boolean isChk)
-                        {
-                            String lstStr = String.valueOf(chans.size());
+                        MediaAdapter mediaAdp = new MediaAdapter(getActivity()
+                                .getApplicationContext(), chans, getActivity());    //Initialize the Channel List's main fragment
+                        ListView lstView = (ListView) rootView.findViewById(R.id.listView);  //Create the ListView and fill it with the corresponding xml fragment; This is where getView is used through override
+                        final ToggleButton tglBtn = (ToggleButton) rootView.findViewById(R.id.toggleButton);
 
-                            if (isChk) {
-                                tglBtn.setTextOn("Channels: " + lstStr);
-                            } else {
-                                tglBtn.setTextOff("Channels: " + lstStr);
+                        tglBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton btnView, boolean isChk) {
+                                String lstStr = String.valueOf(chans.size());
+
+                                if (isChk) {
+                                    tglBtn.setTextOn("Channels: " + lstStr);
+                                } else {
+                                    tglBtn.setTextOff("Channels: " + lstStr);
+                                }
                             }
-                        }
-                    });
-
-                    lstView.setAdapter(mediaAdp);                                                   //Fill lstView with every "element_media.xml"'s sub-fragments
-                }
-            });
+                        });
+                        if (lstView != null)
+                            lstView.setAdapter(mediaAdp);                                                   //Fill lstView with every "element_media.xml"'s sub-fragments
+                    }
+                });
+            }
+            catch (BboxNotFoundException e) {
+                e.toast(this.getActivity());
+            }
         }
     }
 

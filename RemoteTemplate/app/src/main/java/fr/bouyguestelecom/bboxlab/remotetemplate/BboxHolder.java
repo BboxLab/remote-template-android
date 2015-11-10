@@ -3,6 +3,7 @@ package fr.bouyguestelecom.bboxlab.remotetemplate;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.Toast;
 
 import fr.bouyguestelecom.tv.openapi.secondscreen.authenticate.IAuthCallback;
 import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.Bbox;
@@ -79,9 +80,9 @@ public class BboxHolder {
      *
      * @return the bbox.
      */
-    public Bbox getBbox() {
+    public Bbox getBbox() throws BboxNotFoundException {
         if (mBbox == null) {
-            throw new RuntimeException("No bbox found! Check if a Miami bbox is present in the same network and if the service BboxApi is running.");
+            throw new BboxNotFoundException();
         }
         return mBbox;
     }

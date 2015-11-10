@@ -69,47 +69,51 @@ public class ApplicationAdapter extends ArrayAdapter<Application> {
 
             appName.setText(app.getAppName());
             appState.setText(app.getAppState().toString());
+            try {
+                Bbox bbox = BboxHolder.getInstance().getBbox();
 
-            Bbox bbox = BboxHolder.getInstance().getBbox();
+                if (bbox != null) {
+                    final ApplicationsManager applicationsManager = bbox.getApplicationsManager();
 
-            if (bbox != null) {
-                final ApplicationsManager applicationsManager = bbox.getApplicationsManager();
+                    start.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            applicationsManager.startApplication(app, new CallbackHttpStatus() {
+                                @Override
+                                public void onResult(int i) {
+                                    applicationsManager.getApplications(new ApplicationsManager.CallbackApplications() {
+                                        @Override
+                                        public void onResult(int status, List<Application> applicationsList) {
+                                            applications = applicationsList;
+                                            notifyDataSetChanged();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
 
-                start.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        applicationsManager.startApplication(app, new CallbackHttpStatus() {
-                            @Override
-                            public void onResult(int i) {
-                                applicationsManager.getApplications(new ApplicationsManager.CallbackApplications() {
-                                    @Override
-                                    public void onResult(int status, List<Application> applicationsList) {
-                                        applications = applicationsList;
-                                        notifyDataSetChanged();
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-
-                stop.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        applicationsManager.stopApplication(app, new CallbackHttpStatus() {
-                            @Override
-                            public void onResult(int i) {
-                                applicationsManager.getApplications(new ApplicationsManager.CallbackApplications() {
-                                    @Override
-                                    public void onResult(int status, List<Application> applicationsList) {
-                                        applications = applicationsList;
-                                        notifyDataSetChanged();
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
+                    stop.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            applicationsManager.stopApplication(app, new CallbackHttpStatus() {
+                                @Override
+                                public void onResult(int i) {
+                                    applicationsManager.getApplications(new ApplicationsManager.CallbackApplications() {
+                                        @Override
+                                        public void onResult(int status, List<Application> applicationsList) {
+                                            applications = applicationsList;
+                                            notifyDataSetChanged();
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+            catch (BboxNotFoundException e) {
+                e.toast(mContext);
             }
         }
         return view;
