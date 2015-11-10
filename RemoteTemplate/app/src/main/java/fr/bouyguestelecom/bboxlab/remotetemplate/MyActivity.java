@@ -231,10 +231,10 @@ public class MyActivity
                 break;
             case 7:
                 mTitle = getString(R.string.title_section7);
-                break;*/
+                break;
             case 8:
                 mTitle = getString(R.string.title_section8);
-                break;
+                break;*/
         }
     }
 
