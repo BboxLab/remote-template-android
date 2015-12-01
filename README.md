@@ -3,10 +3,8 @@ remote-template-android
 
 Basic template using the android 2nd screen library
 
-The remote part is handled by the Anymote library:
-* [Anymote library](https://code.google.com/p/googletv-android-samples/source/browse/#git%2FAnymoteLibrary)
-* [Anymote protocol](https://developers.google.com/tv/remote/docs/anymote)
-* [Samples](https://developers.google.com/tv/remote/docs/samples)
+The remote part is handled by the Anymote library (see below)
 
-Kown issues:
+Known issues:
 * The settings part allows to modify manually the Bbox Ip address, but this has no effect. The only way to connect to a Bbox is the Automatic detection at startup
+* The Anymote library is currently incompatible with Android 5.1. The remote part will not respond. SDK Remote will be added later when published by Google
