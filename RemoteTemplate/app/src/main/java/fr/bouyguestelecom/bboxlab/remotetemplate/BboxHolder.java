@@ -3,7 +3,6 @@ package fr.bouyguestelecom.bboxlab.remotetemplate;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-import android.widget.Toast;
 
 import fr.bouyguestelecom.tv.openapi.secondscreen.authenticate.IAuthCallback;
 import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.Bbox;
@@ -14,8 +13,8 @@ import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.BboxManager;
  */
 public class BboxHolder {
     private static final String TAG = BboxHolder.class.getCanonicalName();
-    private static String APP_ID = "";
-    private static String APP_SECRET = "";
+    private static String APP_ID = "122-101";
+    private static String APP_SECRET = "7EFC9FA674F0450C8A929C243F49FDDE";
 
     public static BboxHolder mInstance = new BboxHolder();
     private Bbox mBbox;
@@ -80,9 +79,9 @@ public class BboxHolder {
      *
      * @return the bbox.
      */
-    public Bbox getBbox() throws BboxNotFoundException {
+    public Bbox getBbox() {
         if (mBbox == null) {
-            throw new BboxNotFoundException();
+            //throw new RuntimeException("No bbox found! Check if a Miami bbox is present in the same network and if the service BboxApi is running.");
         }
         return mBbox;
     }

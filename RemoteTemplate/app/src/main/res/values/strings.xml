@@ -7,10 +7,21 @@
     <string name="title_section3">Settings</string>
     <string name="title_section4">Notification</string>
     <string name="title_section5">Channel List</string>
+    <string name="title_section6">IoT Connection</string>
+    <string name="title_section7">IoT Association</string>
+    <string name="title_section8">IoT Scanning</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_wakeonlan">Wake on LAN</string>
     <string name="action_settings">Settings</string>
     <string name="ChanLstBtn">Chan count</string>
+    <string name="strScnBtn">Start Scan</string>
+    <string name="stpScnBtn">Stop Scan</string>
+    <string name="getScnBtn">Get Scan</string>
+    <string name="strAstBtn">Start Asso</string>
+    <string name="stpAstBtn">Stop Asso</string>
+    <string name="stpAllAstBtn">Stop All Asso</string>
+    <string name="getAstBtn">Get Asso</string>
+    <string name="getCntBtn">Get Asso</string>
 
 </resources>

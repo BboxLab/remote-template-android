@@ -48,6 +48,8 @@ import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.Bbox;
 import fr.bouyguestelecom.tv.openapi.secondscreen.authenticate.IAuthCallback;
 import fr.bouyguestelecom.tv.openapi.secondscreen.application.Application;
 import fr.bouyguestelecom.tv.openapi.secondscreen.application.ApplicationsManager;
+import fr.bouyguestelecom.tv.openapi.secondscreen.iot.IoTManager;
+import fr.bouyguestelecom.tv.openapi.secondscreen.iot.IoTScan;
 import fr.bouyguestelecom.tv.openapi.secondscreen.media.Media;
 import fr.bouyguestelecom.tv.openapi.secondscreen.media.MediaManager;
 import fr.bouyguestelecom.tv.openapi.secondscreen.notification.NotificationManager;
@@ -90,9 +92,8 @@ public class MyActivity
                     displayWarningConnectivityMessage(msg);                                         //Something wrong happen during authentication process
                     return;
                 }                                                                                   //Check the reason to know exactly why there is an error (problem with tokens means problem during connection with distant platform
-                try {                                                                                    //Authentication while problem with sessionId means problem with bbox connectivity check)
-                    final Bbox bbox = BboxHolder.getInstance().getBbox();                      //Starts almost everything, creates a BboxHolder that holds a Bbox
-
+                                                                                                    //Authentication while problem with sessionId means problem with bbox connectivity check)
+                final Bbox          bbox = BboxHolder.getInstance().getBbox();                      //Starts almost everything, creates a BboxHolder that holds a Bbox
 
                 if (bbox != null)
                 {
@@ -113,6 +114,7 @@ public class MyActivity
                                                     Log.d(LOG_TAG, "status subscribe:" + statusCode);   // We can check if the subscription is a success with the http return code.
                                                     notification.subscribe(NotificationType.APPLICATION, null);     // We also subscribe to Applications and Media, but we do not provide a callback this time. We don't want to wait for the return.
                                                     notification.subscribe(NotificationType.MEDIA, null);
+                                                    notification.subscribe(NotificationType.IOT, null);
                                                     notification.addAllNotificationsListener(new NotificationManager.Listener()     // We add a AllNotificationsListener to Log all the notifications we receive.
                                                     {
                                                         @Override
@@ -138,6 +140,14 @@ public class MyActivity
                                                             Log.d(LOG_TAG, jsonObject.toString());
                                                         }
                                                     });
+                                                    notification.addIoTListener(new NotificationManager.Listener()      // Same here with a ApplicationListener.
+                                                    {
+                                                        @Override
+                                                        public void             onNotification(JSONObject jsonObject)
+                                                        {
+                                                            Log.d(LOG_TAG, jsonObject.toString());
+                                                        }
+                                                    });
                                                     notification.listen(new NotificationManager.CallbackConnected()     // Once we have set our listeners, we can start listening for notifications.
                                                     {
                                                         @Override
@@ -152,10 +162,7 @@ public class MyActivity
                                 }
                             });
                 }
-                initAnymoteConnection();
-                }
-                catch (BboxNotFoundException e) {
-                }//Pairing to a Bbox through anymote protocol
+                initAnymoteConnection();                                                            //Pairing to a Bbox through anymote protocol
             }
         };
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer,
@@ -317,6 +324,21 @@ public class MyActivity
                 rootView = inflater.inflate(R.layout.fragment_chanlist, container, false);
                 initChanList(rootView);                                                             //Starts the whole tab fragment_chanlist.xml
             }
+            else if (section == 6)                                                                  //If the "Channel List" tab is chosen
+            {
+                rootView = inflater.inflate(R.layout.fragment_iot, container, false);
+                initIoT(rootView);                                                             //Starts the whole tab fragment_chanlist.xml
+            }
+            /*else if (section == 7)                                                                  //If the "Channel List" tab is chosen
+            {
+                rootView = inflater.inflate(R.layout.fragment_iotast, container, false);
+                initIoTAst(rootView);                                                             //Starts the whole tab fragment_chanlist.xml
+            }
+            else if (section == 8)                                                                  //If the "Channel List" tab is chosen
+            {
+                rootView = inflater.inflate(R.layout.fragment_iotcnt, container, false);
+                initIoTCnt(rootView);                                                             //Starts the whole tab fragment_chanlist.xml
+            }*/
             else {
                 rootView = inflater.inflate(R.layout.fragment_main, container, false);
                 initRemote(rootView);
@@ -340,16 +362,12 @@ public class MyActivity
             final TextView showCrtIP = (TextView) rootView.findViewById(R.id.showCrtIP);
 
             editText.setText(preference.getString("bboxIP", "*.*.*.*"));
-            try {
-                showCrtIP.setText(preference.getString("*.*.*.*", BboxHolder.getInstance().getBbox().getIp()));
-            }
-            catch (BboxNotFoundException e) {
-                e.toast(this.getActivity());
-            };
-
-            save.setOnClickListener(new View.OnClickListener() {
+            //showCrtIP.setText(preference.getString("*.*.*.*", BboxHolder.getInstance().getBbox().getIp()));
+            save.setOnClickListener(new View.OnClickListener()
+            {
                 @Override
-                public void onClick(View view) {
+                public void onClick(View view)
+                {
                     SharedPreferences.Editor editor = preference.edit();
 
                     editor.putString("bboxIP", editText.getText().toString());
@@ -374,27 +392,23 @@ public class MyActivity
 
         private void initAppController(final View rootView)                              // App controller
         {
-            try {
-                ApplicationsManager applicationsManager = BboxHolder.getInstance().getBbox()
-                        .getApplicationsManager();
+            ApplicationsManager applicationsManager = BboxHolder.getInstance().getBbox()
+                    .getApplicationsManager();
 
-                applicationsManager.getApplications(new ApplicationsManager.CallbackApplications()      // We are getting all the installed applications on the Bbox, and show them in a listView.
+            applicationsManager.getApplications(new ApplicationsManager.CallbackApplications()      // We are getting all the installed applications on the Bbox, and show them in a listView.
+            {
+                @Override
+                public void onResult(int status, List<Application> applications)
                 {
-                    @Override
-                    public void onResult(int status, List<Application> applications) {
-                        ApplicationAdapter applicationAdapter = new ApplicationAdapter(getActivity()
-                                .getApplicationContext()
-                                , applications, getActivity());
-                        ListView listView = (ListView) rootView
-                                .findViewById(R.id.listView);
+                    ApplicationAdapter applicationAdapter = new ApplicationAdapter(getActivity()
+                            .getApplicationContext()
+                            , applications, getActivity());
+                    ListView listView = (ListView) rootView
+                            .findViewById(R.id.listView);
 
-                        listView.setAdapter(applicationAdapter);
-                    }
-                });
-            }
-            catch (BboxNotFoundException e) {
-                e.toast(this.getActivity());
-            }
+                    listView.setAdapter(applicationAdapter);
+                }
+            });
         }
 
         private void initNotifications(final View rootView)                              // Notifications
@@ -454,41 +468,243 @@ public class MyActivity
 
         private void initChanList(final View rootView)                                   //Starts Channel List view, taking place on main view
         {
-            try {
+            MediaManager mediaMng = BboxHolder.getInstance().getBbox().getMediaManager();   //Preparing fetching sequence; Locking target Bbox, Checking setted Bbox presence, Using the setted Bbox's Media fetching sequence
 
-                MediaManager mediaMng = BboxHolder.getInstance().getBbox().getMediaManager();   //Preparing fetching sequence; Locking target Bbox, Checking setted Bbox presence, Using the setted Bbox's Media fetching sequence
+            mediaMng.getChannels(new MediaManager.CallbackChannels()                                //Asynchronous REST data fetching through callback
+            {                                                                                       //Anonymous channels' fetching function startpoint
+                @Override
+                public void onResult(int status, final List<Media> chans)                     //On receiving JSON data, fill the Channel List's fragment with
+                {
+                    MediaAdapter mediaAdp = new MediaAdapter(getActivity()
+                            .getApplicationContext(), chans, getActivity());    //Initialize the Channel List's main fragment
+                    ListView lstView = (ListView) rootView.findViewById(R.id.listView);  //Create the ListView and fill it with the corresponding xml fragment; This is where getView is used through override
+                    final ToggleButton tglBtn = (ToggleButton) rootView.findViewById(R.id.toggleButton);
 
-                mediaMng.getChannels(new MediaManager.CallbackChannels()                                //Asynchronous REST data fetching through callback
-                {                                                                                       //Anonymous channels' fetching function startpoint
-                    @Override
-                    public void onResult(int status, final List<Media> chans)                     //On receiving JSON data, fill the Channel List's fragment with
+                    tglBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
                     {
-                        MediaAdapter mediaAdp = new MediaAdapter(getActivity()
-                                .getApplicationContext(), chans, getActivity());    //Initialize the Channel List's main fragment
-                        ListView lstView = (ListView) rootView.findViewById(R.id.listView);  //Create the ListView and fill it with the corresponding xml fragment; This is where getView is used through override
-                        final ToggleButton tglBtn = (ToggleButton) rootView.findViewById(R.id.toggleButton);
+                        @Override
+                        public void onCheckedChanged(CompoundButton btnView, boolean isChk)
+                        {
+                            String lstStr = String.valueOf(chans.size());
 
-                        tglBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                            @Override
-                            public void onCheckedChanged(CompoundButton btnView, boolean isChk) {
-                                String lstStr = String.valueOf(chans.size());
-
-                                if (isChk) {
-                                    tglBtn.setTextOn("Channels: " + lstStr);
-                                } else {
-                                    tglBtn.setTextOff("Channels: " + lstStr);
-                                }
+                            if (isChk) {
+                                tglBtn.setTextOn("Channels: " + lstStr);
+                            } else {
+                                tglBtn.setTextOff("Channels: " + lstStr);
                             }
-                        });
-                        if (lstView != null)
-                            lstView.setAdapter(mediaAdp);                                                   //Fill lstView with every "element_media.xml"'s sub-fragments
-                    }
-                });
-            }
-            catch (BboxNotFoundException e) {
-                e.toast(this.getActivity());
-            }
+                        }
+                    });
+
+                    lstView.setAdapter(mediaAdp);                                                   //Fill lstView with every "element_media.xml"'s sub-fragments
+                }
+            });
         }
+
+        private void            initIoT(final View rootView)
+        {
+            final IoTManager            iotMng = BboxHolder.getInstance().getBbox().getIoTManager();
+            final Button                strScnBtn = (Button)rootView.findViewById(R.id.strScnBtn);
+            final Button                stpScnBtn = (Button)rootView.findViewById(R.id.stpScnBtn);
+            final Button                scnLstBtn = (Button)rootView.findViewById(R.id.getScnBtn);
+
+            iotMng.getIoTScan(new IoTManager.CallbackGetScanning()
+            {
+                @Override
+                public void onResult(int status, final List<IoTScan>
+                        ioTLst)
+                {
+                    IoTAdapter iotAdp = new IoTAdapter(getActivity()
+                            .getApplicationContext(), ioTLst, getActivity());
+                    ListView lstView = (ListView) rootView.findViewById(R.id.listView);
+                    lstView.setAdapter(iotAdp);
+                }
+            });
+
+            strScnBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.startIoTScan(5000, new IoTManager.CallbackStartScanning()
+                    {
+                        @Override
+                        public void onResult(int i)
+                        {
+                            i = 0;
+                        }
+                    });
+                }
+            });
+
+            stpScnBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.stopIoTScan(new IoTManager.CallbackStopScanning()
+                    {
+                        @Override
+                        public void onResult(int i)
+                        {
+                            i = 0;
+                        }
+                    });
+                }
+            });
+
+            scnLstBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.getIoTScan(new IoTManager.CallbackGetScanning()
+                    {
+                        @Override
+                        public void onResult(int status, final List<IoTScan>
+                                ioTLst)
+                        {
+                            IoTAdapter iotAdp = new IoTAdapter(getActivity()
+                                    .getApplicationContext(), ioTLst, getActivity());
+                            ListView lstView = (ListView) rootView.findViewById(R.id.listView);
+                            lstView.setAdapter(iotAdp);
+                        }
+                    });
+                }
+            });
+
+            //public FragmentTabHost         iotTabHst;
+        }
+
+        /*private void            initIoTAst(final View rootView)
+        {
+            final IoTManager            iotMng = BboxHolder.getInstance().getBbox().getIoTManager();
+            final Button                strAstBtn = (Button)rootView.findViewById(R.id.strAstBtn);
+            final Button                stpAstBtn = (Button)rootView.findViewById(R.id.stpAstBtn);
+            final Button                stpAllAstBtn = (Button)rootView.findViewById(R.id.stpAllAstBtn);
+            final Button                getAstBtn = (Button)rootView.findViewById(R.id.getAstBtn);
+
+            getAstBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.getIoTAst(new IoTManager.CallbackGetAssociation()
+                    {
+                        @Override
+                        public void onResult(int status, final List<JSONArray>
+                                ioTAstLst)
+                        {
+                            IoTAstAdapter iotAdp = new IoTAstAdapter(getActivity()
+                                    .getApplicationContext(), ioTAstLst, getActivity());
+                            ListView lstView = (ListView) rootView.findViewById(R.id.listView);
+                            lstView.setAdapter(iotAdp);
+                        }
+                    });
+                }
+            });
+
+            strAstBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.startIoTScan(5000, new IoTManager.CallbackStartScanning()
+                    {
+                        @Override
+                        public void onResult(int i)
+                        {
+                            i = 0;
+                        }
+                    });
+                }
+            });
+
+            stpAstBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.stopIoTScan(new IoTManager.CallbackStopScanning()
+                    {
+                        @Override
+                        public void onResult(int i)
+                        {
+                            i = 0;
+                        }
+                    });
+                }
+            });
+
+            getAstBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.getIoTScan(new IoTManager.CallbackGetScanning()
+                    {
+                        @Override
+                        public void onResult(int status, final List<IoTScan>
+                                ioTLst)
+                        {
+                            IoTAdapter iotAdp = new IoTAdapter(getActivity()
+                                    .getApplicationContext(), ioTLst, getActivity());
+                            ListView lstView = (ListView) rootView.findViewById(R.id.listView);
+                            lstView.setAdapter(iotAdp);
+                        }
+                    });
+                }
+            });
+        }
+
+        private void            initIoTCnt(final View rootView)
+        {
+            final IoTManager            iotMng = BboxHolder.getInstance().getBbox().getIoTManager();
+            final Button                strScnBtn = (Button)rootView.findViewById(R.id.strScnBtn);
+            final Button                stpScnBtn = (Button)rootView.findViewById(R.id.stpAstBtn);
+            final Button                scnLstBtn = (Button)rootView.findViewById(R.id.getAstBtn);
+
+            strScnBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.startIoTScan(5000, new IoTManager.CallbackStartScanning()
+                    {
+                        @Override
+                        public void onResult(int i)
+                        {
+                            i = 0;
+                        }
+                    });
+                }
+            });
+
+            stpScnBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.stopIoTScan(new IoTManager.CallbackStopScanning()
+                    {
+                        @Override
+                        public void onResult(int i)
+                        {
+                            i = 0;
+                        }
+                    });
+                }
+            });
+
+            scnLstBtn.setOnClickListener(new View.OnClickListener()
+            {
+                public void onClick(View v)
+                {
+                    iotMng.getIoTScan(new IoTManager.CallbackGetScanning()
+                    {
+                        @Override
+                        public void onResult(int status, final List<IoTScan>
+                                ioTLst)
+                        {
+                            IoTAdapter iotAdp = new IoTAdapter(getActivity()
+                                    .getApplicationContext(), ioTLst, getActivity());
+                            ListView lstView = (ListView) rootView.findViewById(R.id.listView);
+                            lstView.setAdapter(iotAdp);
+                        }
+                    });
+                }
+            });
+        }*/
     }
 
     private void            initAnymoteConnection()
