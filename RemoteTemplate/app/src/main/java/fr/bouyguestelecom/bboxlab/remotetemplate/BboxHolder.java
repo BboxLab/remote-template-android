@@ -13,8 +13,8 @@ import fr.bouyguestelecom.tv.openapi.secondscreen.bbox.BboxManager;
  */
 public class BboxHolder {
     private static final String TAG = BboxHolder.class.getCanonicalName();
-    private static String APP_ID = "122-101";
-    private static String APP_SECRET = "7EFC9FA674F0450C8A929C243F49FDDE";
+    private static String APP_ID = "";
+    private static String APP_SECRET = "";
 
     public static BboxHolder mInstance = new BboxHolder();
     private Bbox mBbox;
