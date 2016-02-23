@@ -237,7 +237,7 @@ public class MyActivity
             case 5:
                 mTitle = getString(R.string.title_section5);
                 break;
-            /*case 6:
+            case 6:
                 mTitle = getString(R.string.title_section6);
                 break;
             case 7:
@@ -245,7 +245,7 @@ public class MyActivity
                 break;
             case 8:
                 mTitle = getString(R.string.title_section8);
-                break;*/
+                break;
         }
     }
 
@@ -324,21 +324,22 @@ public class MyActivity
                 rootView = inflater.inflate(R.layout.fragment_chanlist, container, false);
                 initChanList(rootView);                                                             //Starts the whole tab fragment_chanlist.xml
             }
-            else if (section == 6)                                                                  //If the "Channel List" tab is chosen
+            // IOT views under construction
+            /*else if (section == 6)                                                                  //If the "Channel List" tab is chosen
             {
                 rootView = inflater.inflate(R.layout.fragment_iot, container, false);
                 initIoT(rootView);                                                             //Starts the whole tab fragment_chanlist.xml
             }
-            /*else if (section == 7)                                                                  //If the "Channel List" tab is chosen
+            else if (section == 7)                                                                  //If the "Channel List" tab is chosen
             {
                 rootView = inflater.inflate(R.layout.fragment_iotast, container, false);
                 initIoTAst(rootView);                                                             //Starts the whole tab fragment_chanlist.xml
-            }
-            else if (section == 8)                                                                  //If the "Channel List" tab is chosen
+            }*/
+            else if (section == 6)                                                                  //If the "Channel List" tab is chosen
             {
                 rootView = inflater.inflate(R.layout.fragment_iotcnt, container, false);
                 initIoTCnt(rootView);                                                             //Starts the whole tab fragment_chanlist.xml
-            }*/
+            }
             else {
                 rootView = inflater.inflate(R.layout.fragment_main, container, false);
                 initRemote(rootView);
@@ -572,7 +573,7 @@ public class MyActivity
             //public FragmentTabHost         iotTabHst;
         }
 
-        /*private void            initIoTAst(final View rootView)
+        private void            initIoTAst(final View rootView)
         {
             final IoTManager            iotMng = BboxHolder.getInstance().getBbox().getIoTManager();
             final Button                strAstBtn = (Button)rootView.findViewById(R.id.strAstBtn);
@@ -686,7 +687,7 @@ public class MyActivity
                 }
             });
 
-            scnLstBtn.setOnClickListener(new View.OnClickListener()
+            /*scnLstBtn.setOnClickListener(new View.OnClickListener()
             {
                 public void onClick(View v)
                 {
@@ -703,8 +704,8 @@ public class MyActivity
                         }
                     });
                 }
-            });
-        }*/
+            });*/
+        }
     }
 
     private void            initAnymoteConnection()
