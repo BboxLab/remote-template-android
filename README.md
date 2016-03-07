@@ -1,7 +1,7 @@
 remote-template-android
 =======================
 
-Basic template using the android 2nd screen library
+Basic template using the android 2nd screen library of BboxAPI
 
 The remote part is handled by the Anymote library:
 * [Anymote library](https://code.google.com/p/googletv-android-samples/source/browse/#git%2FAnymoteLibrary)
