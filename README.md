@@ -8,8 +8,6 @@ Known issues:
 * The settings part allows to modify manually the Bbox Ip address, but this has no effect. The only way to connect to a Bbox is the Automatic detection at startup
 * The Anymote library is currently incompatible with Android 5.1. The remote part will not respond. SDK Remote will be added later when published by Google
 
-NB : 
-
-Master branch : for Android 4.1
-
-1.4 branch : for Android TV 5.1
+Branch : 
+* Master branch : for Android 4.1
+* 1.4 branch : for Android TV 5.1
